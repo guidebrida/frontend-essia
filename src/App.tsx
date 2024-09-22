@@ -1,26 +1,45 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import DirectoryList from './components/DirectoryList';
+import DirectoryDetails from './components/DirectoryDetails';
+import { Diretorio } from './types';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App: React.FC = () => {
+    const [diretorioSelecionado, setDiretorioSelecionado] = useState<Diretorio | null>(null);
+
+    // Atualiza o diretório selecionado com novos arquivos
+    const handleUpdateDiretorio = (diretorioAtualizado: Diretorio) => {
+        setDiretorioSelecionado(diretorioAtualizado);
+    };
+
+    return (
+        <div className="App">
+            <header className="header" style={{ textAlign: 'center' }}>
+                <h1>Sistema de Arquivos Virtual</h1>
+            </header>
+            <main>
+                {diretorioSelecionado ? (
+                    <DirectoryDetails
+                        diretorio={diretorioSelecionado}
+                        onUpdate={handleUpdateDiretorio}
+                    />
+                ) : (
+                    <DirectoryList onSelectDirectory={setDiretorioSelecionado} />
+                )}
+            </main>
+            <footer
+                className="footer"
+                style={{
+                    position: "absolute",
+                    bottom: 0,
+                    width: "100%",
+                    height: "60px",
+                    textAlign: "center",
+                    lineHeight: "60px",}}>
+                &copy; 2024 Criado por Guilherme de Brida de Bona
+            </footer>
+        </div>
+    );
+};
 
 export default App;
+
