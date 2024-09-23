@@ -14,7 +14,6 @@ const DirectoryDetails: React.FC<DirectoryDetailsProps> = ({ diretorio, onUpdate
     const [selectedArquivo, setSelectedArquivo] = useState<Arquivo | null>(null);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-    // Fetch arquivos when the directory is selected
     useEffect(() => {
         const fetchArquivos = async () => {
             try {
@@ -25,36 +24,48 @@ const DirectoryDetails: React.FC<DirectoryDetailsProps> = ({ diretorio, onUpdate
             }
         };
 
-        if (modalVisible) {
+        if (diretorio.id) {
             fetchArquivos();
         }
-    }, [modalVisible, diretorio.id]);
+    }, [diretorio.id]);
 
-    const addArquivo = async () => {
+    const saveArquivo = async () => {
         try {
-            const response = await api.post(`/arquivos`, {
+            const data = {
                 nome: nomeArquivo,
                 diretorio: { id: diretorio.id }
-            });
+            };
+            const response = selectedArquivo
+                ? await api.put<Arquivo>(`/arquivos/${selectedArquivo.id}`, data)
+                : await api.post<Arquivo>('/arquivos', data);
+
             const diretorioAtualizado = {
                 ...diretorio,
-                arquivos: [...arquivos, response.data]
+                arquivos: selectedArquivo
+                    ? arquivos.map((arquivo) =>
+                        arquivo.id === selectedArquivo.id ? response.data : arquivo
+                    )
+                    : [...arquivos, response.data]
             };
+
             onUpdate(diretorioAtualizado);
             setNomeArquivo('');
+            setSelectedArquivo(null);
         } catch (error) {
-            console.error("Erro ao adicionar arquivo:", error);
+            console.error("Erro ao salvar arquivo:", error);
         }
     };
 
     const showArquivoModal = (arquivo: Arquivo) => {
         setSelectedArquivo(arquivo);
+        setNomeArquivo(arquivo.nome);
         setModalVisible(true);
     };
 
     const handleCloseModal = () => {
         setModalVisible(false);
         setSelectedArquivo(null);
+        setNomeArquivo('');
     };
 
     return (
@@ -67,14 +78,14 @@ const DirectoryDetails: React.FC<DirectoryDetailsProps> = ({ diretorio, onUpdate
                 placeholder="Nome do Arquivo"
                 style={{ width: '300px', marginRight: '10px' }}
             />
-            <Button type="primary" onClick={addArquivo}>
-                Adicionar Arquivo
+            <Button type="primary" onClick={saveArquivo}>
+                {selectedArquivo ? 'Editar Arquivo' : 'Adicionar Arquivo'}
             </Button>
 
             <h4 style={{ marginTop: '20px' }}>Arquivos:</h4>
             <List
                 bordered
-                dataSource={arquivos} // Use the arquivos state here
+                dataSource={arquivos}
                 renderItem={arquivo => (
                     <List.Item>
                         <Button type="link" onClick={() => showArquivoModal(arquivo)}>
